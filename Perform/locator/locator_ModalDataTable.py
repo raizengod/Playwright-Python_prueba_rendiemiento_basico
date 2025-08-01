@@ -75,3 +75,18 @@ class ModalDataTableLocatorPage:
     @property
     def infoDataTable(self):
         return self.page.locator("//*[@id='dataTable_info']")
+    
+    #Selector mensaje error letra
+    @property
+    def menErrorLetra(self):
+        return self.page.get_by_text("Acepta solo Letras")
+    
+    #Selector mensaje error número
+    @property
+    def menErrorNumero(self):
+        return self.page.get_by_text("Deben ser solo numeros")
+    
+    #Selector mensaje error obligatorio
+    @property
+    def menErrorObligatorio(self):
+        return self.page.get_by_text("Este campo es obligatorio.")

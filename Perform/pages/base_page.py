@@ -335,7 +335,7 @@ class Funciones_Globales:
         finally:
             # Este bloque se ejecuta siempre, independientemente de si la validación fue exitosa o falló.
             # Es un buen lugar para tomar una captura de pantalla final que muestre el estado de la página.
-            self.tomar_captura(nombre_captura=f"{nombre_base}_estado_final_no_visible", directorio=directorio)
+            self.tomar_captura(f"{nombre_base}_estado_final_no_visible", directorio=directorio)
 
     # 8- Función para verificar que un elemento (o elementos) localizado en una página web contiene un texto específico
     def verificar_texto_contenido(self, selector: Union[str, Page.locator], texto_esperado: str, nombre_base: str, directorio: str, tiempo: Union[int, float] = 0.5):

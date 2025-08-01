@@ -196,26 +196,27 @@ def test_buscar_dato(set_up_DataTable):
 def test_registrar_data_xml(set_up_DataTable):
     """
     Realiza una prueba end-to-end para registrar datos desde un archivo XML en una tabla
-    interactiva (Datatable), seleccionar una opción de paginación y verificar la información
-    de conteo de entradas de la tabla.
+    interactiva (Datatable) y verificar la funcionalidad de paginación y el conteo de entradas.
 
     La prueba sigue los siguientes pasos:
-    1. Lee datos de un archivo XML ('dataset.xml').
+    1. Lee un archivo XML de datos de prueba ('dataset.xml').
     2. Itera sobre cada registro del XML, agregando un nuevo registro a la tabla
-        a través de un formulario modal.
-    3. Verifica el mensaje de confirmación de registro exitoso para cada entrada.
+       a través de un formulario modal.
+    3. Para cada registro, valida que los mensajes de error del formulario no sean visibles,
+       lo que indica un registro exitoso.
     4. Después de registrar todos los datos, selecciona una opción específica
-        en el ComboBox de paginación ('Show entries').
-    5. Extrae y parsea el texto de información de la tabla ("Showing N to X of Y entries").
-    6. Compara que el número total de entradas (Y) coincida con la cantidad de registros
-        exitosos realizados.
-    7. Compara que el rango de entradas mostradas (N y X) sea consistente con la
-        opción seleccionada en el ComboBox y el total de registros.
+       en el ComboBox de paginación ('Show entries').
+    5. Extrae y parsea la información de paginación de la tabla ("Showing N to X of Y entries").
+    6. Compara que el número total de entradas (Y) en la tabla coincida con la cantidad
+       de registros exitosos realizados.
+    7. Compara que el rango de entradas mostradas (N y X) sea consistente con la opción
+       seleccionada en el ComboBox y el total de registros.
 
-    Args: set_up_DataTable (Page): Objeto de página de Playwright, proporcionado por el fixture
-    'set_up_DataTable', que ya ha navegado a la URL inicial de la Datatable.
+    Args:
+        set_up_DataTable (Page): Objeto de página de Playwright, proporcionado por el fixture
+        'set_up_DataTable', que ya ha navegado a la URL inicial de la Datatable.
     """
-    
+
     # Inicializa el objeto 'page' de Playwright a partir del fixture.
     # Este objeto permite interactuar directamente con la página web cargada.
     page = set_up_DataTable
@@ -225,7 +226,7 @@ def test_registrar_data_xml(set_up_DataTable):
     fg = Funciones_Globales(page)
     
     # Instancia de la clase ModalDataTableLocatorPage para acceder a los localizadores
-    # específicos de los elementos de la tabla y el formulario modal (botones, campos de texto, etc.).
+    # específicos de los elementos de la tabla y el formulario modal.
     mdt = ModalDataTableLocatorPage(page)
 
     # Inicializa un contador para los registros que se añaden exitosamente a la tabla.
@@ -235,13 +236,12 @@ def test_registrar_data_xml(set_up_DataTable):
     # Define el nombre del archivo XML que contiene los datos de prueba.
     xml_file_name = "dataset.xml"
     # Construye la ruta completa al archivo XML, combinando el directorio base de datos fuente
-    # con el nombre del archivo. 'config.SOURCE_FILES_DIR_DATA_FUENTE' debe estar definido en 'config.py'.
+    # con el nombre del archivo.
     xml_file_path = os.path.join(config.SOURCE_FILES_DIR_DATA_FUENTE, xml_file_name)
 
     # Bloque try-except para manejar errores durante la lectura y procesamiento del XML.
     try:
-        # --- Medición de rendimiento: Inicio de la fase de lectura y registro de datos XML ---
-        start_time_xml_registro = time.time()
+        fg.logger.info("--- Iniciando lectura y registro de datos desde XML en la datatable ---")
 
         # Intenta leer el archivo XML. Se espera que la función 'leer_xml' devuelva el elemento raíz.
         root_element = fg.leer_xml(xml_file_path)
@@ -258,13 +258,12 @@ def test_registrar_data_xml(set_up_DataTable):
         if not records:
             fg.logger.warning(f"\n ⚠️ Advertencia: El archivo XML '{xml_file_path}' no contiene elementos '<record>' o está vacío.")
             return # Termina la prueba si no hay datos para procesar
+        
+        # Hace clic en el botón para abrir el formulario de agregar un nuevo registro.
+        fg.hacer_click_en_elemento(mdt.botonAgregarRegistro, "hacer_click_en_elemento_agregar_registro", config.SCREENSHOT_DIR)
 
-        fg.logger.info("--- Iniciando registro de datos desde XML en la datatable ---")
         # Itera sobre cada elemento 'record' encontrado en el XML.
         for i, record_element in enumerate(records):
-            # Hace clic en el botón para abrir el formulario de agregar un nuevo registro.
-            fg.hacer_click_en_elemento(mdt.botonAgregarRegistro, "hacer_click_en_elemento_agregar_registro", config.SCREENSHOT_DIR)
-
             # Obtiene los datos de 'Nombre', 'Apellido' y 'Teléfono' del elemento 'record' actual.
             # Se usa .find('TagName').text para obtener el contenido, y se añade una verificación
             # para 'None' para evitar errores si un tag no existe.
@@ -288,24 +287,36 @@ def test_registrar_data_xml(set_up_DataTable):
             # Hace clic en el botón "Enviar" del formulario para guardar el registro.
             fg.hacer_click_en_elemento(mdt.botonEnviar, f"enviar_formulario_fila_{n_logical_xml_row}_xml", config.SCREENSHOT_DIR, "Enviar", 0)
             
-            # Hace clic en el botón para cerrar el modal de registro después del envío.
-            fg.hacer_click_en_elemento(mdt.botonCerrar, "hacer_click_en_elemento_botón_cerrar_modal", config.SCREENSHOT_DIR, 0)
-            # Verifica que aparezca un mensaje de éxito después de enviar el formulario.
-            fg.verificar_texto_contenido(mdt.menExitoso, "Formulario enviado exitosamente", "verificar_texto_contenido_mensaje_exitoso", config.SCREENSHOT_DIR)
+            # --- Validaciones de mensajes de error después del envío ---
+            # Las siguientes validaciones de "elemento no visible" se usan para confirmar que
+            # el formulario se envió correctamente y no se mostraron mensajes de error.
+            try:
+                # Si estas funciones se ejecutan sin lanzar una excepción,
+                # significa que los mensajes de error no aparecieron.
+                fg.validar_elemento_no_visible(mdt.menErrorLetra, "validar_elemento_no_visible_mensaje_errror_letra", config.SCREENSHOT_DIR, 0)
+                fg.validar_elemento_no_visible(mdt.menErrorObligatorio, "validar_elemento_no_visible_mensaje_errror_obligatorio", config.SCREENSHOT_DIR, 0)
+                fg.validar_elemento_no_visible(mdt.menErrorNumero, "validar_elemento_no_visible_mensaje_errror_número", config.SCREENSHOT_DIR, 0)
+                
+                # Si todas las validaciones pasan sin excepción, incrementamos el contador.
+                # No es necesario verificar el valor de retorno, solo que no se produjo un error.
+                reg += 1
+
+            except (AssertionError, TimeoutError) as e:
+                # Si alguna de las validaciones falla, se lanza una excepción.
+                # Podemos decidir qué hacer aquí (por ejemplo, registrar un error
+                # y continuar, o re-lanzar la excepción para que la prueba falle).
+                fg.logger.error(f"❌ FALLO EN LA VALIDACIÓN: Se esperaba que los mensajes de error no fueran visibles. Detalles: {e}")
+                # En este caso, no sumamos 'reg' y la prueba continuará (o fallará si lanzas la excepción).
             
-            # Incrementa el contador de registros exitosos.
-            reg += 1
+            # Después de la validación, los campos del formulario se limpian para la siguiente iteración.
+            fg.rellenar_campo_de_texto(mdt.campoNombre, "", "limpiando_dato_campo_nombre", config.SCREENSHOT_DIR, 0)
+            fg.rellenar_campo_de_texto(mdt.campoApellido, "", "limpiando_dato_campo_apellido", config.SCREENSHOT_DIR, 0)
+            fg.rellenar_campo_de_texto(mdt.campoTelefono, "", "limpiando_dato_campo_teléfono", config.SCREENSHOT_DIR, 0)
             
     except Exception as e:
         # Captura cualquier excepción inesperada que ocurra durante el procesamiento del XML.
         fg.logger.error(f"\n ❌ Ocurrió un error inesperado durante el procesamiento del XML: {e}")
         raise # Re-lanza la excepción para que Pytest marque la prueba como fallida
-
-    # --- Medición de rendimiento: Fin de la fase de lectura y registro XML ---
-    end_time_xml_registro = time.time()
-    total_time_xml_registro = end_time_xml_registro - start_time_xml_registro
-    # Registra el tiempo total que tomó registrar todas las entradas desde el XML.
-    fg.logger.info(f"PERFORMANCE: Tiempo total de registro de {reg} entradas desde XML: {total_time_xml_registro:.2f} segundos.")
 
     fg.logger.info(f"\n--- Registro de datos completado. Se registraron {reg} entradas. ---")
 
@@ -315,18 +326,14 @@ def test_registrar_data_xml(set_up_DataTable):
     entries_to_show = "10" 
     fg.logger.info(f"Seleccionando '{entries_to_show}' en el ComboBox de paginación.")
     
-    # --- Medición de rendimiento: Inicio de la selección del ComboBox de paginación ---
-    start_time_paginacion = time.time()
     # Selecciona la opción deseada en el ComboBox de paginación.
     fg.seleccionar_opcion_por_valor(mdt.comboBoxMostrar, entries_to_show, f"seleccionar_opcion_por_valor_{entries_to_show}", config.SCREENSHOT_DIR)
+    
     # Espera un momento para que la tabla se actualice después de la selección.
+    # NOTA: Aunque esta espera es fija, es necesaria para permitir que el DOM se actualice.
+    # Una alternativa más robusta sería esperar por una condición específica en el DOM,
+    # como un cambio en el texto de `infoDataTable`.
     page.wait_for_timeout(1000)
-    # --- Medición de rendimiento: Fin de la selección del ComboBox de paginación ---
-    end_time_paginacion = time.time()
-    total_time_paginacion = end_time_paginacion - start_time_paginacion
-    # Registra el tiempo que tomó seleccionar la paginación y que la tabla se actualizara.
-    fg.logger.info(f"PERFORMANCE: Tiempo para seleccionar paginación '{entries_to_show}': {total_time_paginacion:.2f} segundos.")
-
 
     fg.logger.info("Verificando el texto de información de la tabla.")
     

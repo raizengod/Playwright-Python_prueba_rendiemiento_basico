@@ -1,9 +1,8 @@
 # Proyecto de Automatización de Pruebas UI y rendimiento básico con Playwright y Python 🧪
 
 ## 🚀 Descripción General
-Este proyecto es un framework de automatización de pruebas de interfaz de usuario (UI) robusto y escalable, desarrollado con Playwright y Python, utilizando Pytest como gestor de pruebas. El objetivo principal es validar exhaustivamente las funcionalidades de aplicaciones web, ofreciendo un conjunto completo de utilidades para la interacción con elementos, manejo de datos y generación de evidencias.
-
-Este repositorio demuestra capacidades avanzadas en el diseño, desarrollo y ejecución de pruebas automatizadas, enfocándose en la modularidad, reusabilidad del código y la generación de informes detallados.
+Este proyecto es un framework de automatización de pruebas de interfaz de usuario (UI) robusto y escalable, desarrollado con Playwright y Python, utilizando Pytest como gestor de pruebas. 
+Este repositorio contiene un proyecto básico en Python que utiliza la herramienta [Playwright](https://playwright.dev/python/) para realizar pruebas automatizadas de rendimiento en aplicaciones web.
 
 ## ✨ Características Principales
 El framework incluye una serie de funcionalidades diseñadas para optimizar y enriquecer el proceso de automatización:
@@ -179,3 +178,11 @@ Este proyecto es una base sólida, y siempre hay espacio para la mejora continua
 
 * Configurar variables de entorno para la URL base y credenciales, mejorando la seguridad y flexibilidad del framework.
 * Extender la cobertura con pruebas de APIs para una validación completa del backend (si aplica).
+
+## Licencia
+
+Este proyecto no tiene una licencia específica declarada. Consulta con el autor para su uso en producción.
+
+## Autor
+
+[Carlos N](https://github.com/raizengod)
